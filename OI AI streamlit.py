@@ -7,8 +7,7 @@ LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL")
 
 
 
-# Backend server
-LLAMA_SERVER_URL = "http://18.171.171.212:8080/v1/chat/completions"
+
 
 st.set_page_config(page_title="AI Teacher Assistant", page_icon="🧠")
 st.title("🧠 AI Teacher Assistant")
@@ -88,17 +87,29 @@ if task == "Differentiate the Resource":
 
 # 🔹 Plan & Print
 elif task == "Plan & Print":
-    st.subheader("📘 Enter Lesson Details (e.g., Photosynthesis – Year 8 – 50 mins):")
-    lesson_info = st.text_input("Topic – Year – Duration:")
-    uploaded_content = st.text_area("Optional: Paste chapter content or notes to help AI generate the lesson:")
+    st.subheader("📘 Plan & Print a Lesson")
+
+    input_method = st.radio(
+        "Choose your input method:",
+        ["📝 Topic – Year – Duration", "📄 Paste Chapter Notes"],
+        horizontal=True
+    )
+
+    # Show only one input box based on selected method
+    if input_method == "📝 Topic – Year – Duration":
+        lesson_info = st.text_input("✍️ Enter Topic – Year – Duration (e.g., Photosynthesis – Year 8 – 50 mins):")
+        uploaded_content = ""
+    else:
+        uploaded_content = st.text_area("📄 Paste chapter content or notes:")
+        lesson_info = ""
 
     difficulty = st.selectbox("📘 Difficulty Level", ["Simplified", "Challenge Extension", "Scaffolded Support"])
     eal_support = st.checkbox("🌍 Include EAL Support")
     send_support = st.checkbox("👥 Include SEND Support")
 
     if st.button("📋 Generate Lesson Plan"):
-        if not lesson_info.strip():
-            st.warning("Please enter the lesson details.")
+        if not lesson_info.strip() and not uploaded_content.strip():
+            st.error("⚠️ Please provide the required input.")
         else:
             support_notes = ""
             if eal_support:
@@ -106,23 +117,32 @@ elif task == "Plan & Print":
             if send_support:
                 support_notes += "\n- Include accommodations for SEND learners."
 
-            prompt = (
-                f"Lesson Details: {lesson_info}\n"
-                f"Difficulty: {difficulty}\n"
-                f"{support_notes}\n\n"
-                f"Content Reference (if any):\n{uploaded_content}"
-            )
+            prompt_parts = []
+            if lesson_info.strip():
+                prompt_parts.append(f"Lesson Info: {lesson_info}")
+            if uploaded_content.strip():
+                prompt_parts.append(f"Content Reference:\n{uploaded_content}")
+            prompt_parts.append(f"Difficulty: {difficulty}")
+            prompt_parts.append(support_notes)
+
+            prompt = "\n\n".join(prompt_parts)
 
             SYSTEM_PROMPT = """
-            You are an AI assistant for lesson planning. Based on the teacher's input (topic, year, duration, support needs), create a complete lesson plan including:
+            You are a world-class AI assistant that creates tailored lesson plans for teachers. 
+            Use the provided topic/duration or content notes to generate a structured lesson plan with:
             - Learning Objectives
             - Slide Deck (titles only)
             - Differentiated Worksheets
             - AFL (Assessment for Learning) Questions
-            Tailor the plan to the age group and needs. Avoid adding unrelated material.
+
+            Always adapt to the learner's needs (age, ability, support flags). 
+            Do not introduce unrelated material.
             """
 
             response = get_llama_response(prompt, SYSTEM_PROMPT)
+
+
+
 
 # 🔹 Generate Parent Message
 elif task == "Generate Parent Message":
