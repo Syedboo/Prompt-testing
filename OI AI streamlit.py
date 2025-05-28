@@ -1,5 +1,11 @@
 import streamlit as st
 import requests
+from dotenv import load_dotenv
+import os
+load_dotenv()
+LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL")
+
+
 
 # Backend server
 LLAMA_SERVER_URL = "http://18.171.171.212:8080/v1/chat/completions"
