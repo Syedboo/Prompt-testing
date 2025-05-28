@@ -2,7 +2,7 @@
 Building an app in Streamlit to perform Prompt engineering 
 
 
-# 🧠 AI Teacher Assistant — "Differentiate This"
+# 🧠 AI Teacher Assistant
 
 An AI-powered Streamlit app designed to support teachers in lesson planning, differentiating content, reformatting resources, and communicating with parents — all with a single click.
 
