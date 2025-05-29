@@ -5,6 +5,13 @@ import os
 load_dotenv()
 LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL")
 
+<<<<<<< HEAD
+=======
+
+
+
+
+>>>>>>> a07eae6930d2e61c95e250373bcf59b08d554e43
 st.set_page_config(page_title="AI Teacher Assistant", page_icon="🧠")
 st.title("🧠 AI Teacher Assistant")
 
