@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 import re
 
+load_dotenv()
+LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL")
 
 def clean_prompt(text):
     # Remove ALL punctuation/symbols (keep only letters, numbers, spaces)
@@ -16,8 +18,7 @@ def clean_prompt(text):
 
 
 
-load_dotenv()
-LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL")
+
 
 
 st.set_page_config(page_title="AI Teacher Assistant", page_icon="🧠")
