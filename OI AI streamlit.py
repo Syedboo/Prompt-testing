@@ -2,6 +2,20 @@ import streamlit as st
 import requests
 from dotenv import load_dotenv
 import os
+import re
+
+
+def clean_prompt(text):
+    # Remove ALL punctuation/symbols (keep only letters, numbers, spaces)
+    text = re.sub(r"[^\w\s]", '', text)
+    # Collapse multiple spaces into one
+    text = re.sub(r"\s+", ' ', text)
+    text = text.strip()
+    # Convert to title case (capitalize first letter of each word)
+    return text.title()
+
+
+
 load_dotenv()
 LLAMA_SERVER_URL = os.getenv("LLAMA_SERVER_URL")
 
@@ -38,12 +52,13 @@ if show_support_inputs:
 response = ""
 
 def get_llama_response(user_prompt, system_prompt):
+    cleaned_prompt = clean_prompt(user_prompt)
     payload = {
         "messages": [
             {"role": "system", "content": system_prompt.strip()},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": cleaned_prompt}
         ],
-        "temperature": 0.7,
+        "temperature": 0,
         "max_tokens": 1000
     }
     headers = {"Content-Type": "application/json"}
@@ -51,12 +66,15 @@ def get_llama_response(user_prompt, system_prompt):
     try:
         res = requests.post(LLAMA_SERVER_URL, json=payload, headers=headers)
         res.raise_for_status()
-        return res.json().get("choices", [{}])[0].get("message", {}).get("content", "⚠️ No content returned.")
+        response_content = res.json().get("choices", [{}])[0].get("message", {}).get("content", "⚠️ No content returned.")
+        return response_content, cleaned_prompt
     except Exception as e:
         st.error(f"❌ Server Error: {e}")
         if 'res' in locals():
             st.code(res.text)
-        return "⚠️ Failed to get a valid response."
+        return "⚠️ Failed to get a valid response.", cleaned_prompt
+
+
 
 # 🔹 Differentiate the Resource
 if task == "Differentiate the Resource":
@@ -85,7 +103,8 @@ if task == "Differentiate the Resource":
             You are an expert World class teaching assistant. Adapt the provided lesson content according to the age group, difficulty level, and learning needs. Do not invent unrelated topics.
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 
 # 🔹 Plan & Print
 elif task == "Plan & Print":
@@ -93,13 +112,13 @@ elif task == "Plan & Print":
 
     input_method = st.radio(
         "Choose your input method:",
-        ["📝 Topic – Year – Duration", "📄 Paste Chapter Notes"],
+        ["📝 Topic – Age – Duration", "📄 Paste Chapter Notes"],
         horizontal=True
     )
 
     # Show only one input box based on selected method
-    if input_method == "📝 Topic – Year – Duration":
-        lesson_info = st.text_input("✍️ Enter Topic – Year – Duration (e.g., Photosynthesis – Year 8 – 50 mins):")
+    if input_method == "📝 Topic – Age – Duration":
+        lesson_info = st.text_input("✍️ Enter Topic – Age – Duration (e.g., Photosynthesis – Age 8 – 50 mins):")
         uploaded_content = ""
     else:
         uploaded_content = st.text_area("📄 Paste chapter content or notes:")
@@ -141,7 +160,8 @@ elif task == "Plan & Print":
             Do not introduce unrelated material.
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 
 
 
@@ -171,7 +191,8 @@ elif task == "Generate Parent Message":
             Avoid blame. Focus on support and partnership.
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 
 # 🔹 Convert Resource Format
 elif task == "Convert Resource Format":
@@ -199,7 +220,8 @@ elif task == "Convert Resource Format":
             You are an educational assistant. Transform the given resource into the selected format to suit varied teaching scenarios. Keep the content accurate and age-appropriate.
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 # Emotion Check-in Templates
 elif task == "Emotion Check-in":
     st.subheader("😊 Emotion Check-in")
@@ -240,7 +262,7 @@ elif task == "Emotion Check-in":
         age_group = st.selectbox("🎓 Select Age Group", ["5-7 (KS1)", "7-11 (KS2)", "11-14 (KS3)", "14-16 (KS4)"])
 
     if st.button("🧠 Generate Emotion Check-in Template"):
-        prompt = "Create a short, age-appropriate emotion check-in summary, checkboxes and sentence stems for a student to fill."
+        prompt = "Create a short, age-appropriate emotion check-in summary, checkboxes and sentence stems for a student to fill.It should work like online dairy only to keep in check  "
 
         if student_name:
             prompt += f" Student Name: {student_name}."
@@ -262,7 +284,8 @@ elif task == "Emotion Check-in":
         If the student has provided emotion checkboxes and a note, reflect both simply.
         """
 
-        response = get_llama_response(prompt, SYSTEM_PROMPT)
+        response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 
 # 🔹 Simplified Instruction Scripts
 elif task == "Simplified Instructions":
@@ -293,7 +316,8 @@ elif task == "Simplified Instructions":
             Keep it focused and easy to understand. Use a numbered list if asked.
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 
 
 # 🔹 Functional Literacy Activities
@@ -329,7 +353,8 @@ elif task == "Functional Literacy Activities":
             The activity should focus on everyday life contexts (e.g., shopping, directions, signs).
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
 
 # 🔹 Behavior Reflection Sheets
 elif task == "Behavior Reflection":
@@ -373,10 +398,16 @@ elif task == "Behavior Reflection":
             Tailor to the age group if provided. Focus on understanding, empathy, and accountability.
             """
 
-            response = get_llama_response(prompt, SYSTEM_PROMPT)
+            response, cleaned_prompt = get_llama_response(prompt, SYSTEM_PROMPT)
+
+
 
 
 # 📝 Show result
 if response:
-    st.markdown("### 📝Response")
+    st.markdown("### 📝 Response")
     st.write(response)
+## TO test the working of cleaned User prompt for accuracy
+    st.markdown("---Testing Purpose---")
+    st.markdown("### 🔍 Cleaned Prompt Sent to LLaMA")
+    st.code(cleaned_prompt, language="markdown")
