@@ -188,7 +188,7 @@ elif task == "Generate Parent Message":
 
             SYSTEM_PROMPT = """
             You are a school teacher assistant helping to communicate with parents. 
-            Based on the input concern and tone, craft a respectful, clear, and professional message. 
+            Based on the input concern and tone, craft a respectful, clear, and professional message to the parent. 
             Avoid blame. Focus on support and partnership.
             """
 
